@@ -243,7 +243,7 @@ public struct GatewayStats: Sendable, Equatable {
 /// the `await` re-reads state instead of trusting values captured before it.
 public actor ShieldGateway {
     struct PrincipalState {
-        var window: [Observation] = []
+        var window: [RequestObservation] = []
         var level: EnforcementLevel = .allow
         var levelSince: Millis
         var stepUpGraceUntil: Millis = Int.min
@@ -424,7 +424,7 @@ public actor ShieldGateway {
             let output = max(0, outputTokens)
             let input = max(promptTokens, reportedInput ?? 0)
             _ = ledger.settle(reservation.id, actualTokens: Saturating.add(input, output), now: done)
-            observe(principal, Observation(
+            observe(principal, RequestObservation(
                 at: now, shape: PromptShape.simHash(request.payload.prompt),
                 promptTokens: input, outputTokens: output, maxOutputTokens: maxOut, refused: refused
             ), now: done)
@@ -481,7 +481,7 @@ public actor ShieldGateway {
         return state
     }
 
-    private func observe(_ principal: PrincipalID, _ observation: Observation, now: Millis) {
+    private func observe(_ principal: PrincipalID, _ observation: RequestObservation, now: Millis) {
         // The state may have been evicted while we were suspended; re-admit.
         guard var state = admit(principal, now: now) else { return }
         state.window.append(observation)

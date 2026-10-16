@@ -66,7 +66,7 @@ public enum PromptShape {
 // MARK: - Features and scoring
 
 /// One served request, as the detector remembers it. No prompt text.
-public struct Observation: Sendable, Equatable {
+public struct RequestObservation: Sendable, Equatable {
     public let at: Millis
     public let shape: UInt64
     public let promptTokens: Int
@@ -204,7 +204,7 @@ public struct ExtractionScorer: Sendable {
 
     public init(policy: DetectorPolicy) { self.policy = policy }
 
-    public func features(_ unordered: [Observation]) -> FeatureVector {
+    public func features(_ unordered: [RequestObservation]) -> FeatureVector {
         var f = FeatureVector()
         // Observations are appended in completion order but stamped with arrival
         // time, so overlapping requests can arrive out of order. Time-based
@@ -251,7 +251,7 @@ public struct ExtractionScorer: Sendable {
         return f
     }
 
-    public func assess(_ window: [Observation]) -> RiskAssessment {
+    public func assess(_ window: [RequestObservation]) -> RiskAssessment {
         guard window.count >= policy.minSamples else {
             return RiskAssessment(score: 0, samples: window.count, features: features(window), contributions: [:])
         }
