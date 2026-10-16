@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    name: Linux · Swift 6.0 · build (warnings as errors) + test
+    runs-on: ubuntu-latest
+    container: swift:6.0
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build (clean, warnings are errors)
+        run: swift build -Xswiftc -warnings-as-errors
+      - name: Test
+        run: swift test
+
+  apple:
+    name: macOS 15 · test (incl. SwiftUI target) + iOS Simulator build
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Toolchain
+        run: xcodebuild -version && swift --version
+      - name: Test on macOS
+        run: swift test
+      - name: Build every product for iOS Simulator
+        run: |
+          xcodebuild build \
+            -scheme GatewayShield-Package \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
