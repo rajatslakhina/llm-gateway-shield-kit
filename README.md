@@ -2,7 +2,7 @@
 
 **If your iOS app has an LLM endpoint, anyone who can copy a request out of Charles Proxy can use it for free.** GatewayShield is an abuse-resistant gateway that sits between an iOS app and a model vendor. Every request has to come from a signed-in account and be signed by an attested app install. Every account, install and the fleet as a whole spend from reserved token budgets. Traffic shaped like a distillation sweep gets an explainable score and escalating responses (step-up, then throttle, then block), and the people who use the app normally aren't punished for it.
 
-Swift 6 with strict concurrency. No dependencies. XCTest suite run locally on Linux; CI is configured to run it on macOS too (results under [Verification](#verification)).
+Swift 6 with strict concurrency. No dependencies. 81 XCTest tests, green in CI on Linux and macOS (details under [Verification](#verification)).
 
 > Demo app: **[llm-gateway-shield-demo-app](https://github.com/rajatslakhina/llm-gateway-shield-demo-app)**. It's a separate repo that pulls this package as a remote dependency, resolved from the 1.x range starting at 1.0.0. See [Verification](#verification) for exactly what has and hasn't been run.
 
@@ -189,10 +189,12 @@ To see it run, use the [demo app](https://github.com/rajatslakhina/llm-gateway-s
   - no queue compaction
   - an unsorted feature window
   - no prompt cap
-- **CI** ([Actions](https://github.com/rajatslakhina/llm-gateway-shield-kit/actions)):
+- **CI** ([Actions](https://github.com/rajatslakhina/llm-gateway-shield-kit/actions)) is **green on the v1.0.0 commit**, in two jobs:
   - A Linux job in the `swift:6.0` container builds with `-warnings-as-errors` and runs `swift test`.
   - A `macos-15` job runs `swift test`, which also compiles the SwiftUI target, and then `xcodebuild build` of the `GatewayShield-Package` scheme for `generic/platform=iOS Simulator`.
-- **Simulator:** the demo repo's README says exactly what was and wasn't run.
+  - The first macOS run caught a real bug that Linux couldn't. A public type named `Observation` shadowed the `Observation` module that `@Observable` expands into. It was renamed to `RequestObservation` before the release.
+- **Demo:** the [demo repo](https://github.com/rajatslakhina/llm-gateway-shield-demo-app)'s CI resolves this package from GitHub at 1.0.0 and builds the app for the iOS Simulator. That job is green.
+- **Simulator: not run.** The app has never been launched on a Simulator or a device, and there are no screenshots. The demo README explains why.
 
 ## License
 
