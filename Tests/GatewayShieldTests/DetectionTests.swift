@@ -24,18 +24,18 @@ final class PromptShapeTests: XCTestCase {
 final class ScorerTests: XCTestCase {
     private let scorer = ExtractionScorer(policy: DetectorPolicy())
 
-    private func obs(_ at: Millis, _ prompt: String, out: Int = 300, cap: Int = 1_024, refused: Bool = false) -> Observation {
-        Observation(at: at, shape: PromptShape.simHash(prompt), promptTokens: 20, outputTokens: out, maxOutputTokens: cap, refused: refused)
+    private func obs(_ at: Millis, _ prompt: String, out: Int = 300, cap: Int = 1_024, refused: Bool = false) -> RequestObservation {
+        RequestObservation(at: at, shape: PromptShape.simHash(prompt), promptTokens: 20, outputTokens: out, maxOutputTokens: cap, refused: refused)
     }
 
-    private func botWindow(count: Int = 20) -> [Observation] {
+    private func botWindow(count: Int = 20) -> [RequestObservation] {
         var rng = SeededGenerator(seed: 7)
         return (0..<count).map { i in
             obs(i * 20_000, "explain in exhaustive detail " + GatewayLab.randomWords(7, &rng), out: 4_096, cap: 4_096)
         }
     }
 
-    private func humanWindow() -> [Observation] {
+    private func humanWindow() -> [RequestObservation] {
         let base = "why does my core data fetch return stale objects after a background context save"
         let gaps = [40_000, 190_000, 65_000, 7_200_000, 30_000, 120_000, 55_000, 9_000_000, 80_000, 25_000, 150_000, 45_000]
         var t = 0
@@ -101,8 +101,8 @@ final class ScorerTests: XCTestCase {
         XCTAssertEqual(f.cadenceIrregularityPermille, 0)
         let backwards = [obs(10_000, "a"), obs(0, "b"), obs(Int.min, "c"), obs(Int.max, "d")]
         _ = scorer.features(backwards)   // must not trap
-        let extremes = [Observation(at: 0, shape: 0, promptTokens: Int.max, outputTokens: Int.max, maxOutputTokens: Int.max, refused: false),
-                        Observation(at: 1, shape: 1, promptTokens: -1, outputTokens: -1, maxOutputTokens: -1, refused: true)]
+        let extremes = [RequestObservation(at: 0, shape: 0, promptTokens: Int.max, outputTokens: Int.max, maxOutputTokens: Int.max, refused: false),
+                        RequestObservation(at: 1, shape: 1, promptTokens: -1, outputTokens: -1, maxOutputTokens: -1, refused: true)]
         XCTAssertTrue(extremes[0].saturated)
         XCTAssertFalse(extremes[1].saturated)
         _ = scorer.features(extremes)
